@@ -1,12 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import axios from "axios";
 import Numbers from "./components/Numbers";
 import ContactForm from "./components/ContactForm";
 import Search from "./components/Search";
 
 const App = () => {
-	const [persons, setPersons] = useState([
-		{ name: "Johnny Bigodes", number: "961543210" },
-	]);
+	const [persons, setPersons] = useState([]);
 	const [newName, setNewName] = useState("");
 	const [newNumber, setNewNumber] = useState("");
 	const [search, setSearch] = useState("");
@@ -30,7 +29,16 @@ const App = () => {
 			return;
 		}
 
-		const newPerson = { name: newName, number: newNumber };
+		const newId =
+			persons.length > 0
+				? (Math.max(...persons.map((p) => p.id)) + 1).toString()
+				: "1";
+
+		const newPerson = { name: newName, number: newNumber, id: newId };
+
+		axios.post("http://localhost:3001/persons", newPerson).then((response) => {
+			console.log("post response: ", response.data);
+		});
 
 		setPersons(persons.concat(newPerson));
 		setFilteredResults(persons.concat(newPerson));
@@ -55,6 +63,14 @@ const App = () => {
 			)
 		);
 	};
+
+	useEffect(() => {
+		axios.get("http://localhost:3001/persons").then((response) => {
+			console.log("response: ", response.data);
+			setPersons(response.data);
+			setFilteredResults(response.data);
+		});
+	}, []);
 
 	return (
 		<div>
