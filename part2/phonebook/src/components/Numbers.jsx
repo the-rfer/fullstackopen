@@ -1,13 +1,14 @@
 const DeleteIcon = () => {
     return (
         <svg
+            className='delete-icon'
             xmlns='http://www.w3.org/2000/svg'
             fill='none'
             viewBox='0 0 24 24'
             strokeWidth={1.5}
             stroke='currentColor'
-            width={25}
-            height={25}
+            width={24}
+            height={24}
             color='red'
         >
             <path
@@ -39,15 +40,13 @@ const List = ({ filteredResults, handleDelete }) => {
         }
     };
     return (
-        <ul>
+        <ul className='contact-wrapper'>
             {filteredResults.map((person) => (
-                <li key={person.name}>
+                <li key={person.name} className='contacts'>
                     {person.name} : {person.number}
                     <span
+                        className='delete-span'
                         onClick={() => startDelete(person.id, person.name)}
-                        style={{
-                            cursor: 'pointer',
-                        }}
                     >
                         <DeleteIcon />
                     </span>
