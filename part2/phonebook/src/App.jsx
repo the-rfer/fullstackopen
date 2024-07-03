@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
+import Contacts from './api/Contacts';
 import Numbers from './components/Numbers';
 import ContactForm from './components/ContactForm';
 import Search from './components/Search';
@@ -14,32 +14,82 @@ const App = () => {
     const handleSubmit = (e) => {
         e.preventDefault();
 
+        // prevent empty entries
         if (newName === '' || newNumber === '') {
             alert('Please enter a name and a number');
             return;
         }
 
-        if (persons.some((person) => person.name === newName)) {
+        // prevent duplicate entries
+        if (
+            persons.some(
+                (person) =>
+                    person.name === newName && person.number === newNumber
+            )
+        ) {
             alert(`${newName} is already in the phonebook`);
             return;
         }
 
-        if (persons.some((person) => person.number === newNumber)) {
-            alert(`${newNumber} is already in the phonebook`);
+        // prevent duplicate numbers for different contacts
+        if (
+            persons.some(
+                (person) =>
+                    person.name !== newName && person.number === newNumber
+            )
+        ) {
+            alert(
+                `${newNumber} is already in the phonebook for a different contact`
+            );
             return;
         }
 
-        const newId =
-            persons.length > 0
-                ? (Math.max(...persons.map((p) => p.id)) + 1).toString()
-                : '1';
+        // verify if user wants to update new phone number to existing contact
+        if (
+            persons.some(
+                (person) =>
+                    person.name === newName && person.number !== newNumber
+            )
+        ) {
+            if (
+                window.confirm(
+                    `${newName} is already a contact. Do you wish to update the number to ${newNumber}?`
+                )
+            ) {
+                const contactToUpdate = persons.find(
+                    (person) => person.name === newName
+                );
 
-        const newPerson = { name: newName, number: newNumber, id: newId };
+                const updatedContact = {
+                    ...contactToUpdate,
+                    number: newNumber,
+                };
 
-        axios.post('http://localhost:3001/persons', newPerson);
+                Contacts.updateContact(updatedContact.id, updatedContact).then(
+                    () => {
+                        const updatedContactList = persons.map((person) =>
+                            person.id === updatedContact.id
+                                ? updatedContact
+                                : person
+                        );
 
-        setPersons(persons.concat(newPerson));
-        setFilteredResults(persons.concat(newPerson));
+                        setPersons(updatedContactList);
+                        setFilteredResults(updatedContactList);
+                        setNewName('');
+                        setNewNumber('');
+                    }
+                );
+            }
+            return;
+        }
+
+        Contacts.createContact({ name: newName, number: newNumber }).then(
+            (res) => {
+                setPersons(persons.concat(res.data));
+                setFilteredResults(persons.concat(res.data));
+            }
+        );
+
         setNewName('');
         setNewNumber('');
     };
@@ -64,8 +114,18 @@ const App = () => {
         );
     };
 
+    const handleDelete = (id) => {
+        Contacts.deleteContact(id).then(() => {
+            const filteredContacts = persons.filter(
+                (person) => person.id !== id
+            );
+            setPersons(filteredContacts);
+            setFilteredResults(filteredContacts);
+        });
+    };
+
     useEffect(() => {
-        axios.get('http://localhost:3001/persons').then((response) => {
+        Contacts.retrieveContacts().then((response) => {
             setPersons(response.data);
             setFilteredResults(response.data);
         });
@@ -90,7 +150,10 @@ const App = () => {
                 setNewNumber={setNewNumber}
             />
 
-            <Numbers filteredResults={filteredResults} />
+            <Numbers
+                filteredResults={filteredResults}
+                handleDelete={handleDelete}
+            />
         </div>
     );
 };
