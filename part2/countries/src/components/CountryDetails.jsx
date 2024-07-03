@@ -54,10 +54,7 @@ const Weather = ({ capital, lat, lon }) => {
     const [weather, setWeather] = useState(null);
 
     useEffect(() => {
-        Countries.getWeather(lat, lon).then((data) => {
-            console.log('weather data: ', data);
-            setWeather(data);
-        });
+        Countries.getWeather(lat, lon).then((data) => setWeather(data));
     }, [lat, lon]);
 
     if (weather != null)

@@ -12,7 +12,10 @@ const CountryList = ({ searchValue, foundCountry, handleCoutryDetails }) => {
             .map((country) => (
                 <p key={country.name}>
                     {country.name}{' '}
-                    <span onClick={() => handleCoutryDetails(country.name)}>
+                    <span
+                        onClick={() => handleCoutryDetails(country.name)}
+                        style={{ cursor: 'pointer' }}
+                    >
                         &#8594;
                     </span>
                 </p>
