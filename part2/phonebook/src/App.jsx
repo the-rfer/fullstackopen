@@ -3,6 +3,8 @@ import Contacts from './api/Contacts';
 import Numbers from './components/Numbers';
 import ContactForm from './components/ContactForm';
 import Search from './components/Search';
+import Notification from './components/Notification';
+import './index.css';
 
 const App = () => {
     const [persons, setPersons] = useState([]);
@@ -10,6 +12,29 @@ const App = () => {
     const [newNumber, setNewNumber] = useState('');
     const [search, setSearch] = useState('');
     const [filteredResults, setFilteredResults] = useState(persons);
+    const [status, setStatus] = useState({
+        display: false,
+        message: '',
+        type: 'error',
+    });
+
+    const updateStatus = (message, type) => {
+        setStatus({
+            ...status,
+            display: true,
+            message: message,
+            type: type,
+        });
+        setTimeout(
+            () =>
+                setStatus({
+                    ...status,
+                    display: false,
+                    message: '',
+                }),
+            3000
+        );
+    };
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -65,8 +90,8 @@ const App = () => {
                     number: newNumber,
                 };
 
-                Contacts.updateContact(updatedContact.id, updatedContact).then(
-                    () => {
+                Contacts.updateContact(updatedContact.id, updatedContact)
+                    .then(() => {
                         const updatedContactList = persons.map((person) =>
                             person.id === updatedContact.id
                                 ? updatedContact
@@ -77,8 +102,17 @@ const App = () => {
                         setFilteredResults(updatedContactList);
                         setNewName('');
                         setNewNumber('');
-                    }
-                );
+                        updateStatus(
+                            `Updated ${newName}'s contact number`,
+                            'success'
+                        );
+                    })
+                    .catch(() => {
+                        updateStatus(
+                            `Error updating ${updatedContact.name}'s contact`,
+                            'error'
+                        );
+                    });
             }
             return;
         }
@@ -89,6 +123,8 @@ const App = () => {
                 setFilteredResults(persons.concat(res.data));
             }
         );
+
+        updateStatus(`Created ${newName}'s contact`, 'success');
 
         setNewName('');
         setNewNumber('');
@@ -115,13 +151,28 @@ const App = () => {
     };
 
     const handleDelete = (id) => {
-        Contacts.deleteContact(id).then(() => {
-            const filteredContacts = persons.filter(
-                (person) => person.id !== id
-            );
-            setPersons(filteredContacts);
-            setFilteredResults(filteredContacts);
-        });
+        Contacts.deleteContact(id)
+            .then(() => {
+                const filteredContacts = persons.filter(
+                    (person) => person.id !== id
+                );
+                setPersons(filteredContacts);
+                setFilteredResults(filteredContacts);
+            })
+            .then(() => {
+                let deletedPerson = persons.find((person) => person.id === id);
+                updateStatus(
+                    `Deleted ${deletedPerson.name}'s contact`,
+                    'success'
+                );
+            })
+            .catch(() => {
+                let person = persons.find((person) => person.id === id);
+                updateStatus(
+                    `Error deleting ${person.name}'s contact`,
+                    'error'
+                );
+            });
     };
 
     useEffect(() => {
@@ -134,6 +185,7 @@ const App = () => {
     return (
         <div>
             <h1>Phonebook</h1>
+            <Notification status={status} setStatus={setStatus} />
             <Search
                 search={search}
                 persons={persons}
