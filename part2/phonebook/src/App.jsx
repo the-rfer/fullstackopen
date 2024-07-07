@@ -117,17 +117,19 @@ const App = () => {
             return;
         }
 
-        Contacts.createContact({ name: newName, number: newNumber }).then(
-            (res) => {
+        // previous checks OK, create new contact
+        Contacts.createContact({ name: newName, number: newNumber })
+            .then((res) => {
                 setPersons(persons.concat(res.data));
                 setFilteredResults(persons.concat(res.data));
-            }
-        );
-
-        updateStatus(`Created ${newName}'s contact`, 'success');
-
-        setNewName('');
-        setNewNumber('');
+                updateStatus(`Created ${newName}'s contact`, 'success');
+                setNewName('');
+                setNewNumber('');
+            })
+            .catch((error) => {
+                updateStatus(error.response.data.error, 'error');
+                return;
+            });
     };
 
     const handleSearch = (e) => {

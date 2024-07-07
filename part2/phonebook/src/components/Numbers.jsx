@@ -42,7 +42,7 @@ const List = ({ filteredResults, handleDelete }) => {
     return (
         <ul className='contact-wrapper'>
             {filteredResults.map((person) => (
-                <li key={person.name} className='contacts'>
+                <li key={person.id} className='contacts'>
                     {person.name} : {person.number}
                     <span
                         className='delete-span'
